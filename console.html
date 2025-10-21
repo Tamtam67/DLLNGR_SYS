@@ -2,44 +2,58 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DILLINGER SYSTEMS Console Prototype</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DILLINGER SYSTEMS — Grid Console v1</title>
 
+  <!-- Police techno pour la console -->
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+  <style>
+    /* === STYLE GLOBAL === */
     html, body {
       margin: 0;
       padding: 0;
-      background: #000000;
-      color: #ff0000;
+      background-color: #000;
+      color: #ff1a1a;
       font-family: 'Share Tech Mono', monospace;
-      overflow: hidden;
       height: 100%;
-      user-select: none;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: flex-start;
+      user-select: none;
     }
 
+    /* === LOGO === */
     #logo-container {
       text-align: center;
-      margin: 1rem 0;
+      margin-top: 2rem;
+      animation: glowLogo 3s ease-in-out infinite alternate;
     }
 
     #logo-container img {
-      max-width: 70vw;
+      max-width: 60vw;
       height: auto;
+      filter: drop-shadow(0 0 25px #ff1a1a);
     }
 
+    @keyframes glowLogo {
+      from { filter: drop-shadow(0 0 10px #ff1a1a); }
+      to   { filter: drop-shadow(0 0 30px #ff3333); }
+    }
+
+    /* === TERMINAL === */
     #terminal {
       width: 90vw;
       max-width: 900px;
-      height: 65vh;
-      background: #000011;
-      border: 2px solid #ff0000;
+      height: 60vh;
+      background-color: rgba(10, 0, 0, 0.8);
+      border: 2px solid #ff1a1a;
+      box-shadow: 0 0 25px #ff1a1a;
       padding: 1rem;
+      margin-top: 2rem;
       overflow-y: auto;
-      box-shadow: 0 0 10px #ff0000;
       white-space: pre-wrap;
       display: flex;
       flex-direction: column;
@@ -47,34 +61,32 @@
       position: relative;
     }
 
+    .output {
+      margin-bottom: 1rem;
+      line-height: 1.4;
+    }
+
     .input-line {
       display: flex;
       margin-top: auto;
-      margin-bottom: 0.5rem;
     }
 
     .prompt {
-      color: #00ffea;
+      color: #ff3333;
       margin-right: 0.5rem;
-      white-space: nowrap;
     }
 
     #cmdline {
       background: transparent;
       border: none;
-      color: #ff0000;
+      color: #ff1a1a;
       outline: none;
       flex-grow: 1;
       font-family: 'Share Tech Mono', monospace;
       font-size: 1rem;
     }
 
-    .output {
-      margin-bottom: 1rem;
-      line-height: 1.3;
-      word-wrap: break-word;
-    }
-
+    /* Curseur animé */
     @keyframes blink {
       0%, 50% { opacity: 1; }
       50.01%, 100% { opacity: 0; }
@@ -83,356 +95,101 @@
     #cursor {
       display: inline-block;
       width: 10px;
-      background: #ff0000;
+      background: #ff1a1a;
       margin-left: 2px;
       animation: blink 1s steps(2, start) infinite;
     }
 
-    @media (max-width: 600px) {
-      #logo-container img { max-width: 80vw; }
-      #terminal { height: 60vh; }
-      #cmdline { font-size: 0.9rem; }
+    /* === EFFET AMBIANT === */
+    #ambient {
+      display: none;
     }
-
-
-    @keyframes blink-red {
-      0% { opacity: 1; }
-      50% { opacity: 0.4; }
-      100% { opacity: 1; }
-    }
-
-    @keyframes alert-flash {
-      from { filter: brightness(1); }
-      to { filter: brightness(2); }
-    }
-
   </style>
 </head>
 <body>
+  <!-- === LOGO DILLINGER === -->
   <div id="logo-container">
-    <img src="LOGO/Encom.jpg" alt="Logo ENCOM" />
+    <img src="LOGO/Dillinger.jpg" alt="DILLINGER SYSTEMS Logo">
   </div>
 
-  <div id="terminal" tabindex="0" aria-label="Console TRON interactive">
+  <!-- === TERMINAL === -->
+  <div id="terminal" tabindex="0">
     <div id="output"></div>
     <div class="input-line">
-      <span class="prompt" id="prompt">USER&gt;</span>
+      <span class="prompt" id="prompt">DILLINGER&gt;</span>
       <input type="text" id="cmdline" autocomplete="off" autofocus />
       <span id="cursor"></span>
     </div>
   </div>
 
-  <audio id="ambient-sound" src="SOUNDS/Ambiant - Yout.mp3" loop autoplay></audio>
-  <audio id="alert-sound" src="SOUNDS/access_denied.mp3" preload="auto"></audio>
+  <!-- === AMBIANCE SONORE === -->
+  <audio id="ambient" src="SOUNDS/ambient_dillinger.mp3" loop></audio>
 
   <script>
-    (function () {
-      const outputEl = document.getElementById('output');
-      const inputEl = document.getElementById('cmdline');
-      const terminalEl = document.getElementById('terminal');
-      const promptEl = document.getElementById('prompt');
+    /* === SCRIPT DE BASE === */
+    const terminal = document.getElementById('terminal');
+    const output = document.getElementById('output');
+    const cmdline = document.getElementById('cmdline');
+    const ambient = document.getElementById('ambient');
 
-      const STORAGE_KEY = 'tronUserName';
-      let savedName = localStorage.getItem(STORAGE_KEY);
-      let userName = savedName || 'USER';
-      let waitingUserName = !savedName;
-      let gameStage = 'start';
+    // Effet d’intro
+    const introLines = [
+      'DILLINGER SYSTEMS // INITIATION DE LA GRILLE...',
+      'Chargement des modules internes...',
+      'Établissement du lien avec le Noyau principal...',
+      'Système prêt. Entrez votre commande.'
+    ];
 
-      const allCommands = {
-        enterGrid: 'enterGrid()',
-        resistCapture: 'resistCapture()',
-        acceptCapture: 'acceptCapture()',
-        assignGames: 'assignGames()',
-        getDisc: 'getDisc()',
-        fight: 'fightRinzler()',
-        scan: 'scanEnemy()',
-        talkCLU: 'talkCLU()',
-        resistCLU: 'resistCLU()',
-        scanCLU: 'scanCLU()',
-        scanSam: 'scanSam()',
-        help: 'help',
-        reset: 'reset',
-        restart: 'restart',
-        dodge: 'dodge()',
-        counter: 'counter()',
-        yield: 'yield()',
-        getUP: 'getUP()',
-        idUser: 'idUser()'
-      };
-
-      const commandsByStage = {
-        start: [allCommands.enterGrid],
-        gridArrival: [allCommands.resistCapture, allCommands.acceptCapture],
-        postCapture: [allCommands.assignGames],
-        assignGames: [allCommands.getDisc],
-        discWars: [allCommands.fight, allCommands.scan],
-        rinzlerCombat: [allCommands.dodge, allCommands.counter, allCommands.yield],
-        idProgram: [allCommands.getUP, allCommands.idUser],
-        cluEncounter: [
-          allCommands.talkCLU,
-          allCommands.resistCLU,
-          allCommands.scanCLU,
-          allCommands.scanSam,
-          allCommands.help,
-          allCommands.reset,
-          allCommands.restart
-        ]
-      };
-
-      function printOutput(text) {
-        const div = document.createElement('div');
-        div.className = 'output';
-        div.textContent = text;
-        outputEl.appendChild(div);
-        terminalEl.scrollTop = terminalEl.scrollHeight;
-      }
-
-      function delayedOutput(lines, baseDelay = 600) {
-        lines.forEach((line, index) => {
-          setTimeout(() => { printOutput(line); }, baseDelay * index);
-        });
-      }
-
-      function getPrompt() {
-        return waitingUserName ? '' : `${userName}>`;
-      }
-
-      function getHelpMessage() {
-        if (waitingUserName) return 'Entrez votre nom d’utilisateur...';
-        const cmds = commandsByStage[gameStage] || [];
-        return `Commandes disponibles :\n${cmds.map(c => `- ${c}`).join('\n')}\n- help\n- reset\n- restart`;
-      }
-
-      function equalsCommand(inputCmd, validCmd) {
-        return inputCmd.toLowerCase() === validCmd.toLowerCase();
-      }
-
-        const alertSound = document.getElementById('alert-sound');
-        if (alertSound) {
-          alertSound.currentTime = 0;
-          alertSound.play().catch(() => {});
-        }
-      }
-
-      // === Histoire complète ===
-      function processCommand(rawCmd) {
-        const cmd = rawCmd.trim();
-
-        if (waitingUserName) {
-          if (cmd.length > 0) {
-            if (cmd.toLowerCase() === 'dillinger') {
-              triggerAccessDenied();
-              return;
-            }
-
-            userName = cmd.toUpperCase();
-            localStorage.setItem(STORAGE_KEY, userName);
-            waitingUserName = false;
-            promptEl.textContent = getPrompt();
-            delayedOutput([
-              `Identité reçue. Bienvenue ${userName}.`,
-              `Initialisation du système en cours...`,
-              getHelpMessage()
-            ]);
-          }
-          return;
-        }
-
-        if (cmd === 'reset' || cmd === 'restart') {
-          localStorage.removeItem(STORAGE_KEY);
-          location.reload();
-          return;
-        }
-
-        if (cmd === 'help') {
-          printOutput(getHelpMessage());
-          return;
-        }
-
-        const validCmds = (commandsByStage[gameStage] || []).map(c => c.toLowerCase()).concat(['help', 'reset', 'restart']);
-        if (!validCmds.includes(cmd.toLowerCase())) {
-          printOutput(`${userName}> ${rawCmd}`);
-          printOutput('[ERREUR] Commande inconnue ou indisponible à ce stade. Tapez "help" pour voir les commandes disponibles.');
-          return;
-        }
-
-        printOutput(`${userName}> ${rawCmd}`);
-
-        // === Suite du scénario TRON ===
-        switch (gameStage) {
-          case 'start':
-            if (equalsCommand(cmd, allCommands.enterGrid)) {
-              delayedOutput([
-                '[CONNEXION] Entrée dans la grille...',
-                '[SYSTEME] Transfert numérique en cours...',
-                '[ENV] Atterrissage sur plateforme luminescente',
-                '[SCAN] Analyse verticale en cours...',
-                '[ALERTE] Deux gardes détectés',
-                'Garde : "Ce programme n\'a pas de disque. Encore un vagabond."',
-                '▶ Résister ou se laisser faire ? resistCapture() ou acceptCapture()'
-              ]);
-              gameStage = 'gridArrival';
-            }
-            break;
-
-          case 'gridArrival':
-            if (equalsCommand(cmd, allCommands.resistCapture) || equalsCommand(cmd, allCommands.acceptCapture)) {
-              const actionMsg = equalsCommand(cmd, allCommands.resistCapture)
-                ? '[ACTION] Résistance engagée\n[RESULTAT] Deux Gardes Noirs forcent à avancer.'
-                : '[ACTION] Capture acceptée. Immobilisation immédiate.';
-              delayedOutput([
-                actionMsg,
-                '[ENV] Transport en reconnaisseur',
-                '[SCAN] En cours d\'attribution aux tâches',
-                'Garde : "Jeux."',
-                '▶ Saisir assignGames() pour continuer.'
-              ]);
-              gameStage = 'postCapture';
-            }
-            break;
-
-          case 'postCapture':
-            if (equalsCommand(cmd, allCommands.assignGames)) {
-              delayedOutput([
-                '[LIEU] Salle d’habillage',
-                '[SYSTEME] Préparation du sujet pour les jeux...',
-                '[ACTION] Vêtements retirés, combinaison lumineuse appliquée',
-                '[REQUETE] Disque d\'identité requis',
-                `▶ Laissez les Sirènes vous attribuer vôtre disque d\'identité : ${allCommands.getDisc}`
-              ]);
-              gameStage = 'assignGames';
-            }
-            break;
-
-          case 'assignGames':
-            if (equalsCommand(cmd, allCommands.getDisc)) {
-              delayedOutput([
-                '[INFO] Attention programme. Vous allez recevoir un disque d\'identité. Tout ce que vous ferez ou apprendrez sera enregistré sur ce disque.',
-                '[SYSTEME] Disque actif et synchronisé',
-                '[UTILISATEUR] Lien établi : UNKNOWN',
-                'Sirène : "Duplication terminée. Disque activé et synchronisé."',
-                '[INFO] Survivre.',
-                '▶ Transition vers : Arène Disc Wars...',
-                '▶ Saisir : scanEnemy()'
-              ]);
-              gameStage = 'discWars';
-            }
-            break;
-
-          case 'discWars':
-            if (equalsCommand(cmd, allCommands.scan)) {
-              delayedOutput([
-                '[SCAN ENNEMI] Cible : RINZLER',
-                '[STATUT] Garde Noir',
-                '[AVERTISSEMENT] Niveau de menace maximal',
-                '▶ Saisir fightRinzler() pour continuer.'
-              ]);
-            }
-            if (equalsCommand(cmd, allCommands.fight)) {
-              delayedOutput([
-                '[COMBAT] Début de Disc Wars...',
-                '[ENEMY] RINZLER entre dans l’arène.',
-                '[ACTION] Lancer du disque échoué. RINZLER esquive.',
-                '[REPONSE] Riposte fulgurante...',
-                '[TOUCHÉ] Impact au bras.',
-                '▶ Commandes possibles : dodge(), counter(), yield()'
-              ]);
-              gameStage = 'rinzlerCombat';
-            }
-            break;
-
-          case 'rinzlerCombat':
-            if (['dodge()', 'counter()', 'yield()'].includes(cmd.toLowerCase())) {
-              delayedOutput([
-                `[INPUT] ${cmd}`,
-                '[ACTION] RINZLER met son disque sous vôtre gorge.',
-                '[ANALYSE EN COURS]... Anomalie détectée.',
-                '[AVERTISSEMENT] CONCEPTEUR',
-                '[RINZLER] Blocage du mouvement.',
-                'RINZLER : "Concepteur..."',
-                '▶ Saisir getUP() pour continuer.'
-              ]);
-              gameStage = 'idProgram';
-            }
-            break;
-
-          case 'idProgram':
-            if (equalsCommand(cmd, allCommands.getUP)) {
-              delayedOutput([
-                'JARVIS : "Veuillez vous identifier, Programme."',
-                'VOUS : "Je ne suis pas un Programme."',
-                '? : "IDENTIFIE-TOI."',
-                '▶ Saisir idUser() pour vous identifier.'
-              ]);
-            } else if (equalsCommand(cmd, allCommands.idUser)) {
-              delayedOutput([
-                'VOUS : "Je m\'appelle Sam Flynn."',
-                '▶ Saisir talkCLU() pour continuer.'
-              ]);
-              gameStage = 'cluEncounter';
-            }
-            break;
-
-          case 'cluEncounter':
-            if (equalsCommand(cmd, allCommands.talkCLU)) {
-              delayedOutput([
-                '[ACTION] RINZLER vous emmène dans la salle de contrôle.',
-                'Kevin? : "Sam... regarde-toi, tu as grandi."',
-                '[INFO] Tentative d’usurpation de signature numérique détectée.',
-                '▶ Utilisez scanCLU() pour enquêter.'
-              ]);
-            } else if (equalsCommand(cmd, allCommands.scanCLU)) {
-              delayedOutput([
-                '[SCAN] Sujet : C.L.U. 2.0',
-                '[STATUT] Surintendant du système',
-                '[ID] Codified Likeness Utility',
-                '[ALERTE] Identité incertaine'
-              ]);
-            } else if (equalsCommand(cmd, allCommands.resistCLU)) {
-              delayedOutput([
-                '[ACTION] C.L.U. est démasqué.',
-                '[CLU] "Je ne suis pas ton père, Sam."',
-                '[SYSTEME] Envoi vers l’arène Lightcycle...'
-              ]);
-              gameStage = 'lightcycleArena';
-            }
-            break;
-        }
-      }
-
-      function init() {
-        if (waitingUserName) {
-          printOutput('Bienvenue dans la Grille du système TRON. Veuillez saisir votre nom d’utilisateur :');
-          promptEl.textContent = '';
-        } else {
-          promptEl.textContent = getPrompt();
-          printOutput(`Bienvenue ${userName} ! Tapez "help" pour la liste des commandes.`);
-        }
-        inputEl.focus();
-      }
-
-      inputEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          const inputVal = inputEl.value;
-          inputEl.value = '';
-          processCommand(inputVal);
-        }
-      });
-
-      terminalEl.addEventListener('click', () => {
-        inputEl.focus();
-      });
-
-      init();
-    })();
-  </script>
-
-  <script>
-    const audio = document.getElementById('ambient-sound');
-    audio.volume = 0.15;
-    audio.play().catch(() => {
-      document.body.addEventListener('click', () => audio.play(), { once: true });
+    let lineDelay = 800;
+    introLines.forEach((line, i) => {
+      setTimeout(() => {
+        printOutput(line);
+      }, i * lineDelay);
     });
+
+    // Son d’ambiance (optionnel)
+    ambient.volume = 0.15;
+    ambient.play().catch(() => {
+      document.body.addEventListener('click', () => ambient.play(), { once: true });
+    });
+
+    // Fonction d’affichage
+    function printOutput(text) {
+      const div = document.createElement('div');
+      div.className = 'output';
+      div.textContent = text;
+      output.appendChild(div);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // Entrée utilisateur
+    cmdline.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const cmd = cmdline.value.trim();
+        cmdline.value = '';
+        processCommand(cmd);
+      }
+    });
+
+    function processCommand(cmd) {
+      if (cmd === '') return;
+      printOutput(`DILLINGER> ${cmd}`);
+
+      switch (cmd.toLowerCase()) {
+        case 'help':
+          printOutput('Commandes disponibles :\n- help\n- reset');
+          break;
+        case 'reset':
+          output.innerHTML = '';
+          printOutput('Réinitialisation de la Grille...');
+          setTimeout(() => location.reload(), 1500);
+          break;
+        default:
+          printOutput(`[ERREUR] Commande "${cmd}" non reconnue.`);
+      }
+    }
+
+    terminal.addEventListener('click', () => cmdline.focus());
   </script>
 </body>
 </html>
