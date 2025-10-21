@@ -11,7 +11,7 @@
       margin: 0;
       padding: 0;
       background: #000000;
-      color: #00ffff;
+      color: #ff0000;
       font-family: 'Share Tech Mono', monospace;
       overflow: hidden;
       height: 100%;
@@ -36,10 +36,10 @@
       max-width: 900px;
       height: 65vh;
       background: #000011;
-      border: 2px solid #00ffff;
+      border: 2px solid #ff0000;
       padding: 1rem;
       overflow-y: auto;
-      box-shadow: 0 0 10px #00ffff;
+      box-shadow: 0 0 10px #ff0000;
       white-space: pre-wrap;
       display: flex;
       flex-direction: column;
@@ -62,7 +62,7 @@
     #cmdline {
       background: transparent;
       border: none;
-      color: #00ffff;
+      color: #ff0000;
       outline: none;
       flex-grow: 1;
       font-family: 'Share Tech Mono', monospace;
@@ -83,7 +83,7 @@
     #cursor {
       display: inline-block;
       width: 10px;
-      background: #00ffff;
+      background: #ff0000;
       margin-left: 2px;
       animation: blink 1s steps(2, start) infinite;
     }
@@ -94,40 +94,6 @@
       #cmdline { font-size: 0.9rem; }
     }
 
-    /* === Access Denied Bandeau centré === */
-    .access-denied-banner {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #2a0000;
-      color: #ff0000;
-      font-weight: bold;
-      font-size: 2rem;
-      text-align: center;
-      padding: 1.5rem 2.5rem;
-      letter-spacing: 3px;
-      text-shadow: 0 0 20px #ff0000;
-      animation: blink-red 1s infinite alternate;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 1rem;
-      z-index: 20;
-      border: 3px solid #ff0000;
-      box-shadow: 0 0 25px #ff0000;
-      border-radius: 12px;
-    }
-
-    .triangle {
-      width: 0;
-      height: 0;
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-bottom: 35px solid #ff0000;
-      margin-top: 4px;
-      animation: alert-flash 0.6s ease-in-out infinite alternate;
-    }
 
     @keyframes blink-red {
       0% { opacity: 1; }
@@ -240,17 +206,6 @@
       function equalsCommand(inputCmd, validCmd) {
         return inputCmd.toLowerCase() === validCmd.toLowerCase();
       }
-
-      // === Effet Access Denied ===
-      function triggerAccessDenied() {
-        outputEl.innerHTML = ''; // Efface le texte d’accueil
-        const banner = document.createElement('div');
-        banner.className = 'access-denied-banner';
-        banner.innerHTML = '<div class="triangle"></div> ACCÈS REFUSÉ <div class="triangle"></div>';
-        terminalEl.appendChild(banner);
-
-        inputEl.disabled = true;
-        promptEl.textContent = '';
 
         const alertSound = document.getElementById('alert-sound');
         if (alertSound) {
