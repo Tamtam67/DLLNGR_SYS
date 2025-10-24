@@ -133,9 +133,9 @@
 
     // Effet d’intro
     const introLines = [
-      'DILLINGER SYSTEMS // INITIATION DE LA GRILLE...',
+      'DILLINGER SYSTEMS // INITIALISATION DE LA GRILLE...',
       'Chargement des modules internes...',
-      'Établissement du lien avec le Maître Contrôle...',
+      'Établissement du lien avec le MCP...',
       'Système prêt. Entrez votre commande.'
     ];
 
@@ -170,10 +170,24 @@
       }
     });
 
-    function processCommand(cmd) {
-      if (cmd === '') return;
-      printOutput(`DILLINGER> ${cmd}`);
+      function processCommand(rawCmd) {
+        const cmd = rawCmd.trim();
 
+        if (waitingUserName) {
+          if (cmd.length > 0) {
+          
+            userName = cmd.toUpperCase();
+            localStorage.setItem(STORAGE_KEY, userName);
+            waitingUserName = false;
+            promptEl.textContent = getPrompt();
+            delayedOutput([
+              `Bienvenue ${userName}.`,
+              `Initialisation du système en cours...`,
+              getHelpMessage()
+            ]);
+          }
+          return;
+        }
       switch (cmd.toLowerCase()) {
         case 'help':
           printOutput('Commandes disponibles :\n- help\n- reset');
