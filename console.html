@@ -175,6 +175,10 @@
 
         if (waitingUserName) {
           if (cmd.length > 0) {
+            if (cmd.toLowerCase() === 'evekim') {
+              triggerAccessDenied();
+              return;
+            }
           
             userName = cmd.toUpperCase();
             localStorage.setItem(STORAGE_KEY, userName);
